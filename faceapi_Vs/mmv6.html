@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Elegant Emotion Vinyl Player</title>
+    <style>
+        /* Reset defaults for full-screen experience */
+        body {
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(135deg, #2c3e50, #3498db); /* Elegant gradient */
+            font-family: 'Montserrat', sans-serif; /* Modern font */
+            overflow: hidden;
+        }
+
+        /* Main container with luxurious styling */
+        .container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 90%;
+            height: 80%;
+            background: rgba(255, 255, 255, 0.1); /* Frosted glass */
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3); /* Dramatic shadow */
+            padding: 20px;
+            backdrop-filter: blur(5px); /* Modern blur */
+            transition: all 0.5s ease-in-out;
+        }
+
+        /* Webcam section */
+        .webcam-container {
+            width: 50%; /* Half screen */
+            height: 100%;
+            border: 4px dashed #e74c3c; /* Vibrant red dashed border */
+            border-radius: 15px;
+            overflow: hidden;
+            background: rgba(231, 76, 60, 0.1); /* Subtle tint */
+        }
+
+        #webcam {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 10px;
+        }
+
+        /* Vinyl animation section */
+        .animation-container {
+            width: 50%; /* Half screen */
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* Full-screen button */
+        #fullscreen-btn {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 12px 25px;
+            background: linear-gradient(45deg, #8e44ad, #9b59b6); /* Purple gradient */
+            color: #fff;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 18px;
+            font-weight: bold;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        #fullscreen-btn:hover {
+            transform: scale(1.05);
+            background: linear-gradient(45deg, #9b59b6, #8e44ad);
+        }
+
+        /* Full-screen styling */
+        .fullscreen {
+            width: 100vw !important;
+            height: 100vh !important;
+        }
+    </style>
+</head>
+<body>
+    <button id="fullscreen-btn">Enter Full-Screen Mode</button>
+    <div class="container">
+        <!-- Webcam on the left (half screen) -->
+        <div class="webcam-container">
+            <video id="webcam" autoplay playsinline></video>
+        </div>
+        <!-- Vinyl animation on the right (half screen) -->
+        <div class="animation-container">
+            <dotlottie-player 
+                src="https://lottie.host/2c62de48-a87f-47b0-b37c-a6fa4493b8d5/b1fz2K197W.json" 
+                background="transparent" 
+                speed="1" 
+                style="width: 100%; height: 100%;" 
+                loop 
+                autoplay>
+            </dotlottie-player>
+        </div>
+    </div>
+
+    <!-- Load required libraries -->
+    <script src="https://unpkg.com/@dotlottie/player-component@2.7.12/dist/dotlottie-player.mjs" type="module"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@3.9.0"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@vladmandic/face-api/dist/face-api.js"></script>
+    <script>
+        // Full-screen functionality
+        const container = document.querySelector('.container');
+        const fullscreenBtn = document.getElementById('fullscreen-btn');
+
+        fullscreenBtn.addEventListener('click', () => {
+            if (!document.fullscreenElement) {
+                if (container.requestFullscreen) {
+                    container.requestFullscreen();
+                } else if (container.mozRequestFullScreen) {
+                    container.mozRequestFullScreen();
+                } else if (container.webkitRequestFullscreen) {
+                    container.webkitRequestFullscreen();
+                } else if (container.msRequestFullscreen) {
+                    container.msRequestFullscreen();
+                }
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                }
+            }
+        });
+
+        document.addEventListener('fullscreenchange', () => {
+            if (document.fullscreenElement) {
+                container.classList.add('fullscreen');
+            } else {
+                container.classList.remove('fullscreen');
+            }
+        });
+
+        // Webcam functionality
+        const webcam = document.getElementById('webcam');
+        if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+            navigator.mediaDevices.getUserMedia({ video: true })
+                .then(stream => {
+                    webcam.srcObject = stream;
+                })
+                .catch(error => {
+                    console.error('Webcam access error:', error);
+                    alert('Please allow webcam access to use this app.');
+                });
+        } else {
+            alert('Webcam not supported in this browser.');
+        }
+
+        // Load face-api.js models
+        async function loadModels() {
+            await faceapi.nets.tinyFaceDetector.loadFromUri('https://cdn.jsdelivr.net/npm/@vladmandic/face-api/model/');
+            await faceapi.nets.faceExpressionNet.loadFromUri('https://cdn.jsdelivr.net/npm/@vladmandic/face-api/model/');
+            console.log('Models loaded');
+        }
+
+        let currentEmotion = null;
+        const audio = new Audio(); // Create audio element for playback
+
+        // Map emotions to online music URLs
+        const songMap = {
+            'happy': 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3',
+            'sad': 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3',
+            'neutral': 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3',
+            'angry': 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3'
+        };
+
+        // Start detection and playback cycle
+        loadModels().then(() => {
+            setInterval(async () => {
+                let expressionCounts = { happy: 0, sad: 0, neutral: 0, angry: 0 };
+                let detectionsMade = 0;
+
+                // 5-second detection phase
+                for (let i = 0; i < 5; i++) {
+                    const detections = await faceapi.detectSingleFace(webcam, new faceapi.TinyFaceDetectorOptions())
+                        .withFaceExpressions();
+                    if (detections && detections.expressions) {
+                        const emotion = detections.expressions.asSortedArray()[0].expression;
+                        expressionCounts[emotion]++;
+                        detectionsMade++;
+                    }
+                    await new Promise(resolve => setTimeout(resolve, 1000)); // 1-second intervals
+                }
+
+                // Determine dominant emotion
+                let dominantEmotion = Object.entries(expressionCounts).reduce((a, b) => a[1] > b[1] ? a : b, [null, 0])[0];
+                if (dominantEmotion && detectionsMade > 0) {
+                    if (dominantEmotion !== currentEmotion) {
+                        currentEmotion = dominantEmotion;
+                        audio.src = songMap[dominantEmotion];
+                        audio.play().catch(error => console.error('Audio play error:', error));
+                    }
+                } else if (detectionsMade === 0) {
+                    console.log('No face detected during cycle.');
+                }
+            }, 5000); // Repeat every 5 seconds
+        }).catch(error => {
+            console.error('Model loading error:', error);
+        });
+    </script>
+</body>
+</html>
