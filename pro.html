@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Enhanced Mood Music with Face Overlay</title>
+    <title>Enhanced Mood Music</title>
     <style>
         body {
             margin: 0;
@@ -72,7 +72,7 @@
     <div class="container">
         <div class="webcam-container">
             <video id="webcam" autoplay playsinline></video>
-            <canvas id="overlay"></canvas> <!-- Canvas for facial overlays -->
+            <canvas id="overlay"></canvas> <!-- Added canvas for real-time overlays -->
         </div>
         <div class="animation-container">
             <div class="emotion-display">
@@ -147,13 +147,10 @@
                     const { age, gender, expressions, box } = detection;
                     const dominantEmotion = Object.keys(expressions).reduce((a, b) => expressions[a] > expressions[b] ? a : b);
 
-                    const x = box.x;
-                    const y = box.y - 10;
-
                     ctx.font = '16px Arial';
                     ctx.fillStyle = 'yellow';
-                    ctx.fillText(`${gender}, ${Math.round(age)} years`, x, y);
-                    ctx.fillText(`Emotion: ${dominantEmotion.toUpperCase()}`, x, y + 20);
+                    ctx.fillText(`${gender}, ${Math.round(age)} years`, box.x, box.y - 10);
+                    ctx.fillText(`Emotion: ${dominantEmotion.toUpperCase()}`, box.x, box.y + box.height + 20);
 
                     if (dominantEmotion !== currentEmotion) {
                         currentEmotion = dominantEmotion;
