@@ -9,24 +9,37 @@
           img.src = 'https://profile-counter.glitch.me/moodmusic/count.svg';
         });
     
-        // Add 'visits' command to show the counter SVG in a custom alert box
-        Object.defineProperty(window, 'visits', {
-            get: function () {
-              Swal.fire({
-                title: 'Visit Counter',
-                html: '<img src="https://profile-counter.glitch.me/moodmusic/count.svg" alt="Visit Counter" style="height: 40px;" />',
-                confirmButtonText: 'Close',
-                background: '#f9f9f9',
-                showClass: {
-                  popup: 'swal2-show'
-                },
-                hideClass: {
-                  popup: 'swal2-hide'
-                }
-              });
-              return 'Displaying visit counter...';
-            }
-          });
+      // Function to show the visit counter popup
+      function showVisitCounter() {
+        Swal.fire({
+          title: 'Visit Counter',
+          html: '<img src="https://profile-counter.glitch.me/moodmusic/count.svg" alt="Visit Counter" style="height: 40px;" />',
+          confirmButtonText: 'Close',
+          background: '#f9f9f9',
+          showClass: {
+            popup: 'swal2-show'
+          },
+          hideClass: {
+            popup: 'swal2-hide'
+          }
+        });
+      }
+
+      // Listen for the 'Shift + V' key combination
+      window.addEventListener('keydown', function (event) {
+        // Check if Shift and V are pressed together
+        if (event.shiftKey && event.key === 'V') {
+          showVisitCounter();
+        }
+      });
+    
+      // Add 'visits' command to show the counter SVG in the console
+      Object.defineProperty(window, 'visits', {
+        get: function () {
+          showVisitCounter();
+          return 'Displaying visit counter...';
+        }
+      });
     </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
