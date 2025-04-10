@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mood Music</title>
+    <style>
+        /* Existing styles remain untouched */
+        body {
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(135deg, #2c3e50, #3498db);
+            font-family: 'Montserrat', sans-serif;
+            overflow: hidden;
+        }
+
+        .container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 90%;
+            height: 80%;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            padding: 20px;
+            backdrop-filter: blur(5px);
+            transition: all 0.5s ease-in-out;
+            gap: 20px;
+        }
+
+        .webcam-container {
+            position: relative; /* Updated for overlay */
+            width: 50%;
+            height: 100%;
+            border: 4px dashed #e74c3c;
+            border-radius: 15px;
+            overflow: hidden;
+            background: rgba(231, 76, 60, 0.1);
+        }
+
+        #webcam, #overlay { /* Style for both video and canvas */
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        .animation-container {
+            width: 50%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            align-items: center;
+        }
+
+        .emotion-display {
+            width: 90%;
+            background-color: #3498db;
+            padding: 15px 25px;
+            border-radius: 10px 10px 0 0;
+            color: #ecf0f1;
+            font-size: 24px;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 10px;
+            border: 2px solid #ffffff;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="webcam-container">
+            <video id="webcam" autoplay playsinline></video>
+            <canvas id="overlay"></canvas> <!-- Added canvas for face overlay -->
+        </div>
+        <div class="animation-container">
+            <div class="emotion-display">
+                <span id="emotion">Waiting...</span>
+            </div>
+            <dotlottie-player 
+                src="https://lottie.host/2c62de48-a87f-47b0-b37c-a6fa4493b8d5/b1fz2K197W.json" 
+                background="transparent" 
+                speed="1" 
+                style="width: 100%; height: 85%;" 
+                loop 
+                autoplay>
+            </dotlottie-player>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/@dotlottie/player-component@2.7.12/dist/dotlottie-player.mjs" type="module"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@3.9.0"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@vladmandic/face-api/dist/face-api.js"></script>
+    <script>
+        const webcam = document.getElementById('webcam');
+        const canvas = document.getElementById('overlay');
+        const ctx = canvas.getContext('2d');
+        let currentEmotion = null;
+        const audio = new Audio();
+
+        const songMap = {
+            'happy': 'https://github.com/GetSomeSleepBro/MoodMusic/raw/refs/heads/main/music/mm_happy.mp3',
+            'sad': 'https://github.com/GetSomeSleepBro/MoodMusic/raw/refs/heads/main/music/mm_sad.mp3',
+            'neutral': 'https://github.com/GetSomeSleepBro/MoodMusic/raw/refs/heads/main/music/mm_neutral.mp3',
+            'angry': 'https://github.com/GetSomeSleepBro/MoodMusic/raw/refs/heads/main/music/mm_angry.mp3',
+            'surprised': 'https://github.com/GetSomeSleepBro/MoodMusic/raw/refs/heads/main/music/mm_surprised.mp3',
+            'fearful': 'https://github.com/GetSomeSleepBro/MoodMusic/raw/refs/heads/main/music/mm_fearful.mp3',
+            'disgusted': 'https://github.com/GetSomeSleepBro/MoodMusic/raw/refs/heads/main/music/mm_disgusted.mp3'
+        };
+
+        async function loadModels() {
+            const MODEL_URL = 'https://cdn.jsdelivr.net/npm/@vladmandic/face-api/model/';
+            await faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL);
+            await faceapi.nets.ageGenderNet.loadFromUri(MODEL_URL);
+            await faceapi.nets.faceExpressionNet.loadFromUri(MODEL_URL);
+            console.log('Models loaded');
+        }
+
+        if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+            navigator.mediaDevices.getUserMedia({ video: true })
+                .then(stream => {
+                    webcam.srcObject = stream;
+                })
+                .catch(error => {
+                    console.error('Webcam access error:', error);
+                    document.getElementById('emotion').innerText = 'Webcam access denied. Please allow permission.';
+                });
+        }
+
+        loadModels().then(() => {
+            setInterval(async () => {
+                const detections = await faceapi.detectAllFaces(webcam, new faceapi.TinyFaceDetectorOptions())
+                    .withFaceLandmarks()
+                    .withFaceExpressions()
+                    .withAgeAndGender();
+
+                canvas.width = webcam.videoWidth;
+                canvas.height = webcam.videoHeight;
+
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                faceapi.draw.drawDetections(canvas, detections);
+                faceapi.draw.drawFaceLandmarks(canvas, detections);
+                faceapi.draw.drawFaceExpressions(canvas, detections);
+
+                detections.forEach(detection => {
+                    const { age, gender, expressions, box } = detection;
+                    const dominantEmotion = Object.keys(expressions).reduce((a, b) => expressions[a] > expressions[b] ? a : b);
+
+                    const x = box.x;
+                    const y = box.y - 10;
+
+                    ctx.font = '16px Arial';
+                    ctx.fillStyle = 'yellow';
+                    ctx.fillText(`${gender}, ${Math.round(age)} years`, x, y);
+
+                    if (dominantEmotion !== currentEmotion) {
+                        currentEmotion = dominantEmotion;
+                        document.getElementById('emotion').innerText = dominantEmotion.toUpperCase();
+                        audio.src = songMap[dominantEmotion];
+                        audio.play().catch(error => console.error('Audio play error:', error));
+                    }
+                });
+            }, 1000);
+        });
+    </script>
+</body>
+</html>
