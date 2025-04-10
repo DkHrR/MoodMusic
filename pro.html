@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Enhanced Mood Music</title>
+    <title>Enhanced Mood Music with Face Overlay</title>
     <style>
         body {
             margin: 0;
@@ -72,7 +72,7 @@
     <div class="container">
         <div class="webcam-container">
             <video id="webcam" autoplay playsinline></video>
-            <canvas id="overlay"></canvas> <!-- For facial overlays -->
+            <canvas id="overlay"></canvas> <!-- Canvas for facial overlays -->
         </div>
         <div class="animation-container">
             <div class="emotion-display">
@@ -111,9 +111,9 @@
         async function loadModels() {
             const MODEL_URL = 'https://cdn.jsdelivr.net/npm/@vladmandic/face-api/model/';
             await faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL);
-            await faceapi.nets.ageGenderNet.loadFromUri(MODEL_URL);
-            await faceapi.nets.faceExpressionNet.loadFromUri(MODEL_URL);
             await faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL);
+            await faceapi.nets.faceExpressionNet.loadFromUri(MODEL_URL);
+            await faceapi.nets.ageGenderNet.loadFromUri(MODEL_URL);
             console.log('Models loaded');
         }
 
@@ -142,33 +142,18 @@
 
                 faceapi.draw.drawDetections(canvas, detections);
                 faceapi.draw.drawFaceLandmarks(canvas, detections);
-                faceapi.draw.drawFaceExpressions(canvas, detections);
 
                 detections.forEach(detection => {
-                    const { age, gender, expressions, box, landmarks } = detection;
+                    const { age, gender, expressions, box } = detection;
                     const dominantEmotion = Object.keys(expressions).reduce((a, b) => expressions[a] > expressions[b] ? a : b);
 
                     const x = box.x;
                     const y = box.y - 10;
 
-                    // Display age, gender, and confidence level
                     ctx.font = '16px Arial';
                     ctx.fillStyle = 'yellow';
                     ctx.fillText(`${gender}, ${Math.round(age)} years`, x, y);
-
-                    // Display dominant emotion with confidence score
-                    const emotionConfidence = Math.round(expressions[dominantEmotion] * 100);
-                    ctx.fillText(`${dominantEmotion} (${emotionConfidence}%)`, x, y + 20);
-
-                    // Head tilt or alignment (custom measurement)
-                    const leftEye = landmarks.getLeftEye();
-                    const rightEye = landmarks.getRightEye();
-                    const eyeDistance = Math.sqrt(
-                        Math.pow(rightEye[0].x - leftEye[0].x, 2) +
-                        Math.pow(rightEye[0].y - leftEye[0].y, 2)
-                    );
-
-                    ctx.fillText(`Eye Distance: ${eyeDistance.toFixed(2)}`, x, y + 40);
+                    ctx.fillText(`Emotion: ${dominantEmotion.toUpperCase()}`, x, y + 20);
 
                     if (dominantEmotion !== currentEmotion) {
                         currentEmotion = dominantEmotion;
