@@ -14,24 +14,13 @@
         Swal.fire({
           title: 'Visit Counter',
           html: '<img src="https://profile-counter.glitch.me/moodmusic/count.svg" alt="Visit Counter" style="height: 40px;" />',
-          confirmButtonText: 'Got it!',
-          confirmButtonColor: '#3498db', // A pleasant blue
-          background: 'rgba(255, 255, 255, 0.85)', // Semi-transparent white for the modal
-          backdrop: `
-            rgba(40, 50, 60, 0.4) // Darker semi-transparent backdrop
-            blur(8px)
-            saturate(150%)
-          `,
+          confirmButtonText: 'Close',
+          background: '#f9f9f9',
           showClass: {
-            popup: 'swal2-show' // Default animation
+            popup: 'swal2-show'
           },
           hideClass: {
-            popup: 'swal2-hide' // Default animation
-          },
-          customClass: {
-            title: 'swal-title-custom',
-            htmlContainer: 'swal-html-custom',
-            confirmButton: 'swal-button-custom'
+            popup: 'swal2-hide'
           }
         });
       }
@@ -77,11 +66,11 @@
             align-items: center;
             width: 90%;
             height: 80%;
-            background: rgba(255, 255, 255, 0.15); /* Frosted glass */
+            background: rgba(255, 255, 255, 0.1); /* Frosted glass */
             border-radius: 20px;
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2); /* Dramatic shadow */
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3); /* Dramatic shadow */
             padding: 20px;
-            backdrop-filter: blur(8px); /* Modern blur */
+            backdrop-filter: blur(5px); /* Modern blur */
             transition: all 0.5s ease-in-out;
             gap: 20px; /* Space between webcam and vinyl */
         }
@@ -90,9 +79,10 @@
         .webcam-container {
             width: 50%; /* Half screen */
             height: 100%;
-            border: 2px solid #2c3e50; /* a dark blue, to complement the gradient */
+            border: 4px dashed #e74c3c; /* Vibrant red dashed border */
             border-radius: 15px;
             overflow: hidden;
+            background: rgba(231, 76, 60, 0.1); /* Subtle tint */
         }
 
         #webcam {
@@ -119,39 +109,27 @@
             padding: 15px 25px; /* More spacious padding */
             border-radius: 10px 10px 0 0;
             color: #ecf0f1; /* Light text */
-            font-size: 20px; /* Larger font */
-            font-weight: normal; /* Bold for emphasis */
+            font-size: 24px; /* Larger font */
+            font-weight: bold; /* Bold for emphasis */
             text-align: center; /* Centered text */
             margin-bottom: 10px;
+            border: 2px solid #ffffff; /* Classy white border */
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Subtle shadow */
         }
 
         #emotion {
-            background-color: #ecf0f1; /* a very light gray, almost white */
+            background: linear-gradient(45deg, #f1c40f, #f39c12); /* Yellow gradient button */
             padding: 10px 20px;
             border: none;
             border-radius: 10px;
-            color: #34495e; /* a dark grayish-blue for contrast */
-            font-size: 22px;
-            font-weight: 600;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+            color: #fff;
+            font-size: 24px;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            box-shadow: 0 5px 15px rgba(241, 196, 15, 0.5);
             display: inline-block;
             margin-left: 10px;
-        }
-
-        .swal-title-custom {
-            font-family: 'Montserrat', sans-serif;
-            color: #2c3e50; /* Dark blue-gray */
-        }
-
-        .swal-html-custom {
-            font-family: 'Montserrat', sans-serif;
-            color: #34495e; /* Slightly lighter blue-gray */
-        }
-
-        .swal-button-custom {
-            font-family: 'Montserrat', sans-serif;
-            font-weight: 600; /* Semi-bold */
         }
     </style>
 </head>
